@@ -4,6 +4,7 @@
 [1. SQL 기본내용](#SQL_기본내용)  
 [2. SQL과 NoSQL 비교](#SQL과_NoSQL_비교)  
 [100. Docker 이해하기](#Docker_이해하기)
+[101. 일딴 해보면서 익히기 postgresql 실천](#일딴_해보면서_익히기_postgresql_실천)
 
 ---
 
@@ -162,3 +163,52 @@ GraphDB의 가장 큰 특징은 각각의 **entity를 저장**하고 이를 관�
 
 이럴때 Docker가 필요하게 됩니다. Docker는 다른 머신에서도 같은 환경을 구현할 수 있게 해줍니다. 간단한 이미지 구조를 보겠습니다.  
 ![Docker_example](./img/Docker.png)
+
+## 101. 일딴 해보면서 익히기 postgresql 실천
+
+    이 글은 언제나 바뀔 수 있습니다. 작성자가 공부를 하기 위한 부분입니다.
+
+바로 실천으로 넘어가보겠습니다. 우선 **우분투**로 그냥 바로 **postgresql**을 실행 해봅시다.
+
+> postgresql을 선택한 이유는 3가지가 있습니다.
+>
+> **첫번째**는 무료라는 점입니다. 같은 무료인 것들로는 **MariaDB**와 **MongoDB**가 있습니다. 그중 postgresql을 선택한 이유는 MariaDB는 sql중에 엄격하다는 기준이 높다는 평가가 높아 제외를 했고 MongoDB는 보안에 이슈가 있었다는 이유로 제외했습니다.
+>
+> **두번째**는 Os 버전에 상관없이 설치가 가능하다는 점입니다. 저는 이제 개발을 시작하는 단계이고 아무것도 모른다고 해도 똑같은 입장입니다. 이 상태에서 막연히 Linux나 Mac을 사용하기는 두려움이 있어 **Window 환경에서도 사용가능한 DB**를 선택했습니다.
+>
+> **세번째**는 개발 이력입니다. postgresql을 이용하는 회사들로는 **인스타그램**과 한국의 **KT그룹**이 이용중입니다. 인스타그램은 원래부터 관심이 많았고 KT에서는 왜 이용할까 라는 궁금점이 있어 선택하게 됬습니다.
+
+우분투를 실행하고 바로 다운로드를 해보겠습니다. 혹시나 하니 시작하기전 업데이트를 한번 해주겠습니다.
+
+```bash
+$ sudo apt-get update
+```
+
+바로 postgresql을 설치하겠습니다.
+
+```bash
+$ sudo apt-get install postgresql
+```
+
+[Y/n]라는 화면에 Y를 타이핑 해주고 잠시 기다리면 다운로드가 끝날 것입니다.  
+바로 postgresql을 실행시켜 보겠습니다.
+
+```bash
+$ sudo -u postgresql psql
+```
+
+그런데 저는 이 과정에서 오류가 발생 했습니다.  
+![postgresql](./img/postgresql_error.png)  
+오류 내용을 대충 읽어보자면, 서버와 연결을 할 수 없다는 내용입니다. 바로 구글에 검색해보니 가장 상단에 답을 알려주시네요.  
+![google_search](./img/google_search.png)  
+![google_search2](./img/google_search2.png)  
+내용에 따르면 postgresql을 시작하기 전에 서버가 부딫혀서 발생하는 문제라고 합니다. 저는 해결 방법 1에 있는 postgresql을 실행 시키는 명령어로 간단히 해결했습니다.
+
+```bash
+$ sudo service postgresql start
+```
+
+다시 postgresql을 실행시켜 보겠습니다.  
+![postgresql_start](./img/postgresql_start.png)  
+잘 실행이 됬네요 터미널 창에 `postgres=#`라고 떠 있다면 성공한 것입니다.  
+도움말 확인은
