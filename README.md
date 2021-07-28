@@ -198,10 +198,10 @@ $ sudo -u postgresql psql
 ```
 
 그런데 저는 이 과정에서 오류가 발생 했습니다.  
-![postgresql](./img/postgresql_error.png)  
+![postgresql](./img/postgresql_error.PNG)  
 오류 내용을 대충 읽어보자면, 서버와 연결을 할 수 없다는 내용입니다. 바로 구글에 검색해보니 가장 상단에 답을 알려주시네요.  
-![google_search](./img/google_search.png)  
-![google_search2](./img/google_search2.png)  
+![google_search](./img/google_search.PNG)  
+![google_search2](./img/google_search2.PNG)  
 내용에 따르면 postgresql을 시작하기 전에 서버가 부딫혀서 발생하는 문제라고 합니다. 저는 해결 방법 1에 있는 postgresql을 실행 시키는 명령어로 간단히 해결했습니다.
 
 ```bash
@@ -209,6 +209,6 @@ $ sudo service postgresql start
 ```
 
 다시 postgresql을 실행시켜 보겠습니다.  
-![postgresql_start](./img/postgresql_start.png)  
+![postgresql_start](./img/postgresql_start.PNG)  
 잘 실행이 됬네요 터미널 창에 `postgres=#`라고 떠 있다면 성공한 것입니다.  
 도움말 확인은
