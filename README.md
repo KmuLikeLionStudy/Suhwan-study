@@ -6,6 +6,8 @@
 [100. Docker 이해하기](#Docker_이해하기)
 [101. 일딴 해보면서 익히기 postgresql 실천](#일딴_해보면서_익히기_postgresql_실천)
 
+[201. Django Session 이용하기](#Django_Session_이용하기)
+
 ---
 
 ## 1. SQL 기본내용
@@ -212,3 +214,128 @@ $ sudo service postgresql start
 ![postgresql_start](./img/postgresql_start.PNG)  
 잘 실행이 됬네요 터미널 창에 `postgres=#`라고 떠 있다면 성공한 것입니다.  
 도움말 확인은
+
+
+## 201. Django Session 이용하기
+---
+### Session이란?  
+ 클라이언트 별로 정보를 브라우저가 아니라 웹 서버에 저장하는 것을 Session이라고 합니다. 반대로 정보를 웹 브라우저에 저장하면 그걸 Cookie라고 합니다.  
+ django는 기본적으로 쿠키에 session의 Id를 저장하고 클라이언트와 웹 서버의 연결성이 생기면 SessionId를 통해 소통을 하는 방식입니다.  
+
+ Session의 경우 브라우저를 사용하고 있다면 링크를 통해 다른 사이트로 이동할 때도 sessionID는 쿠키로써 쭉 유지되고, 브라우저를 닫으면 사라집니다. 예시 사진 하나를 보겠습니다.  
+![Session_example](./img/Session_example.PNG)  
+이 처럼 sessionId를 이용해 소통을 하는 방식을 이용할 것입니다.  
+
+> Session의 원리
+>
+>1. 유저가 웹사이트에 접속
+>2. 웹 사이트의 서버가 유저에게 sessionId를 부여(ex. ABCD)
+>3. 유저의 브라우저가 이 sessionId를 cookie에 보존
+>4. 통신할때마다 sessionID를 웹사이트에 전송 (Django의 경우 request 객체에 sessionId가 들어있습니다.)
+>5. sessionId에 의해 웹사이트는 많은 접속 유저 중 특정 유저를 인식 가능합니다)
+
+### Django소스코드로 session 활용해보기  
+저는 일딴 로그인을 통한 session 활용을 해보겠습니다.  
+**views.py**
+```python
+if request.method == 'GET':
+    return render(request, 'login.html')
+```  
+먼저 **Get** 방식으로 요청을 보내겠습니다. ```login.html```은 로그인 페이지 입니다. 자유롭게 만들어서 확인하시면 되겠습니다  
+
+```python
+elif request.method == 'POST':
+        username = request.POST.get('username',None)
+        password = request.POST.get('password',None)
+		
+        res_data = {}
+```  
+**Post**방식의 요청으로 사용자가 보내는 데이터와 데이터 베이스 정보가 일차한지 확인해봅니다.  
+살짝 길어서 끊어냈지만 elif 안에 if not을 다시 선언합니다.(필드가 채워지지 않은 경우를 생각한 것입니다)
+```python
+if not (username and password):
+    res_data['error'] = '모든 값을 입력해야 합니다.'
+else:
+    user = User.objects.get(username=username)
+    if check_password(password, user.password)
+        request.session['user'] = user.id
+        return redirect('/')
+    else:
+        res_data['error'] = '비밀번호가 일치하지 않습니다'
+return render(request, 'login.html', res_data)
+```
+if not 밑에 else의 경우 모든 필드를 채웠을 겨우 즉 성공에 가까웠을때 경우 입니다.  
+필드를 다 채웠을 경우 다시 if문을 사용해서 비밀번호 일치 여부를 파악합니다. 맞을 경우는 ```request.session['user'] = user.id``` 즉 session을 사용해서 ```user.id```를 넘겨준것 입니다.  
+모든 조건을 다 맞췄기 때문에 ```redirect('/')``` 기본 주소인 127.0.0.1:8000/ 슬래쉬 뒤에 아무것도 없는 default 주소로 보내준 것 입니다.  
+홈이 어떻게 설정될 지도 추가해보겠습니다
+```python
+def home(request):
+    user_id = request.session.get('user')
+    
+    if user_id:
+        user = User.objects.get(pk=user_id)
+        return HttpResponse(f'{user} login success')
+	
+    return HttpResponse('Home')
+```  
+login을 통해서 확인된 user는 session으로 ```user.id```를 넘겨 받았습니다.  
+if문을 사용해서 ```user_id``` 유무를 판단해서 있으면 로그인 상태 없으면 로그인을 하도록 해야합니다.  
+```python
+def logout(request):
+	
+    # 로그아웃은 session에 저장된 user_id값을 지우면 된다.
+    if request.session.get('user'):
+        del(request.session['user'])
+	
+    # 로그아웃 후 127.0.0.1:8000/ 이동   
+    return redirect('/')
+```
+로그인이 있었으니 로그아웃도 있어야겠죠? 간단하게 session에 저장된 ```user_id``` 값을 지우는 걸로 로그아웃 처리가 됩니다.  
+똑같이 default 주소인 127.0.0.1:8000/에 화면을 넘겨주기 위해 ```redirect('/')```로 옮겨줍니다.
+
+종합하자면 아래와 같이 완성됩니다.  
+**views.py**
+```python
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import check_password
+from account.models import User
+
+# 로그인 함수
+def login(request):
+    if request.method == 'GET':
+        return render(request, 'login.html')
+	elif request.method == 'POST':
+        username = request.POST.get('username',None)
+        password = request.POST.get('password',None)
+	    res_data = {}
+        if not (username and password):
+            res_data['error'] = '모든 값을 입력해야 합니다.'
+        else:
+            user = User.objects.get(username=username)
+            if check_password(password, user.password):
+                request.session['user'] = user.id
+                return redirect('/')
+            else:
+                res_data['error'] = '비밀번호가 일치하지 않습니다'
+		
+        return render(request, 'login.html', res_data)
+
+# 127.0.0.1:8000/ 
+def home(request):
+    user_id = request.session.get('user')
+    
+    if user_id:
+        user = User.objects.get(pk=user_id)
+        return HttpResponse(f'{user} login success')
+    return HttpResponse('Home')
+    
+# 로그아웃 함수    
+def logout(request):
+    if request.session.get('user'):
+        del(request.session['user'])
+
+    return redirect('/')
+```
+
+이것을 활용판 파일은 본 git 파일에 test/testServer/restapiserver/serverApp/views.py 에서 확인할 수 있습니다.
